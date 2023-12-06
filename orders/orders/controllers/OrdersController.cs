@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using orders.models;
 
 namespace orders.controllers;
 
@@ -13,9 +14,16 @@ public class OrdersController: ControllerBase
     }
     
     [HttpPost]
-    public string CreateOrders()
+    public Object CreateOrders([FromBody] Order order, [FromHeader(Name = "api-key")] string apiKey)
     {
-        return "Create orders";
+        if (apiKey.StartsWith("web-api-"))
+        {
+            return order;
+        }
+        else
+        {
+            return new Dictionary<string, Exception>() { {"message", new Exception("Authorization Error, api key should start with web-api-*")} };
+        }
     }
 
     [HttpGet("{id}")]
@@ -30,8 +38,8 @@ public class OrdersController: ControllerBase
         return $"Update orders By ID: {id}";
     }
     
-    [HttpDelete("{id}")]
-    public string DeleteOrderById(int id)
+    [HttpDelete]
+    public string DeleteOrderById([FromQuery]int id)
     {
         return $"Delete orders By Id: {id}";
     }
