@@ -14,9 +14,16 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public Object CreateOrders([FromBody] Order order)
+    public IActionResult CreateOrders([FromBody] Order order)
     {
-        return order;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        order.Id = Guid.NewGuid().ToString();
+        order.OrderDate = DateTime.Now;
+        return Ok(order);
     }
 
     [HttpGet("{id}")]
