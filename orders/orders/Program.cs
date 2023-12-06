@@ -1,3 +1,5 @@
+using orders.middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,8 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<AuthorizationHeaderMiddleware>();
 
 var app = builder.Build();
 
@@ -19,9 +20,9 @@ if (app.Environment.IsDevelopment())
 
 // middleware components pipeline
 app.UseHttpsRedirection();
-app.UseRouting();
-app.UseAuthentication();
+app.UseMiddleware<AuthorizationHeaderMiddleware>();
 app.UseAuthorization();
+app.UseRouting();
 
 
 // Routing
