@@ -1,13 +1,24 @@
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using orders.middlewares;
+using orders.models;
+using orders.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthorizationHeaderMiddleware>();
+builder.Services.Configure<OrderStoreDatabaseSettings>(
+    builder.Configuration.GetSection(nameof(OrderStoreDatabaseSettings)));
+builder.Services.AddSingleton<IOrderStoreDatabaseSettings>(provider =>
+    provider.GetRequiredService<IOptions<OrderStoreDatabaseSettings>>().Value);
+builder.Services.AddSingleton<IMongoClient>(provider =>
+    new MongoClient(builder.Configuration.GetValue<string>("OrderStoreDatabaseSettings:ConnectionString")));
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 
 var app = builder.Build();
 
