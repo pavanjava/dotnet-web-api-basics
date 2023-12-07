@@ -1,16 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using orders.models;
+using orders.services;
 
 namespace orders.controllers;
 
 [ApiController]
 [Route("/api/v1/[controller]")]
-public class OrdersController : ControllerBase
+public class OrdersController(IOrderService orderService) : ControllerBase
 {
     [HttpGet]
-    public string GetAllOrders()
+    public List<Order> GetAllOrders()
     {
-        return "Getting all orders";
+        return orderService.GetAll();
     }
 
     [HttpPost]
@@ -21,25 +22,38 @@ public class OrdersController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        order.Id = Guid.NewGuid().ToString();
         order.OrderDate = DateTime.Now;
-        return Ok(order);
+        return Ok(orderService.Create(order));
     }
 
     [HttpGet("{id}")]
-    public string GetOrderById(int id)
+    public IActionResult GetOrderById(string id)
     {
-        return $"Getting orders By Id: {id}";
+        Order order = orderService.GetById(id);
+        if (order != null)
+        {
+            return Ok(order);
+        }
+
+        return NotFound();
     }
 
     [HttpPut("{id}")]
-    public string UpdateOrderById(int id)
+    public IActionResult UpdateOrderById(string id, [FromBody] Order order)
     {
-        return $"Update orders By ID: {id}";
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var modifiedCount = orderService.UpdateById(id, order);
+        var response = new Dictionary<string, long> { { "updatedCount", modifiedCount } };
+
+        return Ok(response);
     }
 
     [HttpDelete]
-    public string DeleteOrderById([FromQuery] int id)
+    public string DeleteOrderById([FromQuery] string id)
     {
         return $"Delete orders By Id: {id}";
     }
